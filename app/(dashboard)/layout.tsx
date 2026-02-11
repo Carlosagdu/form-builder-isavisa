@@ -1,0 +1,102 @@
+import Link from "next/link"
+import {
+  Bell,
+  Eye,
+  FilePenLine,
+  FileText,
+  LayoutDashboard,
+  Settings,
+  SlidersHorizontal,
+} from "lucide-react"
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+
+const menuItems = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "#" },
+  { label: "Forms", icon: FileText, href: "#", active: true },
+  { label: "Form Editor", icon: FilePenLine, href: "#" },
+  { label: "Form Setting", icon: Settings, href: "#" },
+  { label: "Form Preview", icon: Eye, href: "#" },
+  { label: "Form Responses", icon: SlidersHorizontal, href: "#" },
+]
+
+export default function DashboardLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <div className="m-4 h-[calc(100vh-2rem)] md:m-6 md:h-[calc(100vh-3rem)] md:grid md:grid-cols-[260px_1fr] lg:m-0 lg:h-screen">
+      <aside className="hidden overflow-y-auto border-r bg-white px-4 py-6 md:block">
+        <div className="space-y-8">
+          <div className="border-b pb-3">
+            <p className="text-xl font-semibold text-zinc-900">Isavisa Builder</p>
+            <p className="text-sm text-zinc-500">Form Builder</p>
+          </div>
+          <Button className="text-white hover:bg-lime-700">+ Nuevo formulario</Button>
+          <nav className="space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                    item.active ? "bg-lime-50 text-primary" : "text-zinc-700 hover:bg-zinc-100"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </nav>
+
+          <div className="space-y-3 border-t pt-6">
+            <p className="text-lg font-semibold text-zinc-900">Formularios recientes</p>
+            <div className="space-y-2 text-sm">
+              <Link href="#" className="block rounded-md px-2 py-1 text-zinc-700 hover:bg-zinc-100">
+                Recent form #1
+              </Link>
+              <Link href="#" className="block rounded-md px-2 py-1 text-zinc-700 hover:bg-zinc-100">
+                Recent form #2
+              </Link>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div className="flex min-h-0 min-w-0 flex-col">
+        <header className="border-b bg-white px-4 py-4 md:px-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0 border-r pr-3">
+              <p className="truncate text-lg font-semibold text-zinc-900">Hola Carlos 👋🏻</p>
+              <p className="text-sm text-zinc-500">Buenos dias</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button size="icon-lg" variant="outline">
+                <Bell className="h-4 w-4" />
+              </Button>
+              <div className="hidden rounded-md border bg-white px-2 py-1.5 sm:flex sm:space-x-2">
+                <Avatar>
+                  <AvatarImage src="https://github.com/shadcn.png" />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium text-zinc-900">Carlos Aguilar</p>
+                  <p className="text-xs text-zinc-500">Admin</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 min-h-0 overflow-hidden p-4 md:p-6">
+          <div className="h-full min-h-0">{children}</div>
+        </main>
+      </div>
+    </div>
+  )
+}
