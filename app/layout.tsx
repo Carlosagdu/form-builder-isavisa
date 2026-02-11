@@ -124,7 +124,7 @@ export default function RootLayout({
             </header>
 
             <main className="flex-1 p-4 md:p-6">
-              <div className="min-h-[calc(100vh-140px)] rounded-md border bg-white p-4 md:p-6">{children}</div>
+              <div className="min-h-[calc(100vh-140px)]">{children}</div>
             </main>
           </div>
         </div>
