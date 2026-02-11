@@ -1,18 +1,37 @@
-import { Calendar, CircleDot, Hash, Type } from "lucide-react"
-
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Calendar, CircleDot, Hand, Hash, Type } from "lucide-react"
 
-export default function NewFormPage() {
+function EmptyFormPlaceholder() {
   return (
-    <div className="space-y-3">
-      <div className="rounded-xl border bg-white p-4">
-        <p className="text-sm font-semibold text-zinc-900">Campos del formulario</p>
-        <p className="mt-1 text-xs text-zinc-500">
-          Contenido inicial estatico para maqueta (sin logica dinamica).
+    <section className="rounded-xl flex flex-col justify-center items-center bg-white h-full p-6 md:p-10">
+      <div className="mx-auto flex max-w-md flex-col items-center justify-center rounded-xl border border-dashed bg-background px-6 py-12 text-center">
+        <div className="mb-4 rounded-full border bg-white p-3 text-zinc-700">
+          <Hand className="size-6" />
+        </div>
+        <p className="text-base font-semibold text-zinc-900">Arrastra y suelta campos aqui</p>
+        <p className="mt-2 text-sm text-zinc-600">
+          Elige un tipo de campo en la columna izquierda y sueltalo en el canvas para empezar a construir tu formulario.
+        </p>
+        <p className="mt-4 text-xs text-zinc-500">
+          Tambien podras hacer click en un campo para agregarlo automaticamente.
         </p>
       </div>
+    </section>
+  )
+}
+
+export default function NewFormPage() {
+  // TODO: Implement data fetching and display accordingly
+  const hasFields = false
+
+  if (!hasFields) {
+    return <EmptyFormPlaceholder />
+  }
+
+  return (
+    <div className="space-y-3">
 
       <article className="rounded-xl border bg-white p-4">
         <div className="mb-3 flex items-center gap-2 text-zinc-800">
