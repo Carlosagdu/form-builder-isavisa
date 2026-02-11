@@ -27,7 +27,7 @@ const STATUS_LABEL: Record<FormCardData["status"], string> = {
 
 export function FormCard({ form }: FormCardProps) {
   return (
-    <Card className="h-100 md:h-75 gap-0 overflow-hidden rounded-2xl py-0">
+    <Card className="h-100 md:h-75 gap-0 overflow-hidden rounded-2xl py-0 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
       <CardHeader className="grid-cols-[1fr_auto] px-6 pt-6 pb-4">
         <CardTitle className="pr-3 text-xl font-bold tracking-tight text-zinc-900">
           {form.title}
