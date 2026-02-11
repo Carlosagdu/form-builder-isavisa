@@ -49,8 +49,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="m-4 min-h-[calc(100vh-2rem)] md:m-6 md:min-h-[calc(100vh-3rem)] md:grid md:grid-cols-[260px_1fr] lg:m-0 lg:min-h-screen">
-          <aside className="hidden border-r bg-white px-4 py-6 md:block">
+        <div className="m-4 h-[calc(100vh-2rem)] md:m-6 md:h-[calc(100vh-3rem)] md:grid md:grid-cols-[260px_1fr] lg:m-0 lg:h-screen">
+          <aside className="hidden overflow-y-auto border-r bg-white px-4 py-6 md:block">
             <div className="space-y-8">
               <div className="border-b pb-3">
                 <p className="text-xl font-semibold text-zinc-900">Isavisa Builder</p>
@@ -92,7 +92,7 @@ export default function RootLayout({
             </div>
           </aside>
 
-          <div className="flex min-w-0 flex-col">
+          <div className="flex min-h-0 min-w-0 flex-col">
             <header className="border-b bg-white px-4 py-4 md:px-6">
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0 border-r pr-3">
@@ -123,8 +123,8 @@ export default function RootLayout({
               </div>
             </header>
 
-            <main className="flex-1 p-4 md:p-6">
-              <div className="min-h-[calc(100vh-140px)]">{children}</div>
+            <main className="flex-1 min-h-0 overflow-hidden p-4 md:p-6">
+              <div className="h-full min-h-0">{children}</div>
             </main>
           </div>
         </div>
