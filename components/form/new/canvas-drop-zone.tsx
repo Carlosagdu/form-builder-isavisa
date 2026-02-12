@@ -89,7 +89,7 @@ export function CanvasDropZone({
   const { isOver, setNodeRef } = useDroppable({
     id: canvasId,
   })
-
+  // TODO: Add empty component from shadcn
   if (fields.length === 0) {
     return (
       <section

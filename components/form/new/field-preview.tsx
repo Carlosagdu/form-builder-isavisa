@@ -12,7 +12,7 @@ import {
 import type { FormField } from "@/components/form/new/types"
 import { Textarea } from "@/components/ui/textarea"
 import { DatePicker } from "./date-picker"
-
+// TODO: Implement the field component from shadcn
 export function FieldPreview({ field }: { field: FormField }) {
   const requiredMarker = field.required ? " *" : ""
 

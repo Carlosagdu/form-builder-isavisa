@@ -11,6 +11,8 @@ import {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { LogoutMenuItem } from "@/components/auth/logout-menu-item"
 
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "#" },
@@ -42,9 +44,8 @@ export default function DashboardLayout({
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                    item.active ? "bg-lime-50 text-primary" : "text-zinc-700 hover:bg-zinc-100"
-                  }`}
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${item.active ? "bg-lime-50 text-primary" : "text-zinc-700 hover:bg-zinc-100"
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
@@ -79,16 +80,47 @@ export default function DashboardLayout({
               <Button size="icon-lg" variant="outline">
                 <Bell className="h-4 w-4" />
               </Button>
-              <div className="hidden rounded-md border bg-white px-2 py-1.5 sm:flex sm:space-x-2">
-                <Avatar>
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium text-zinc-900">Carlos Aguilar</p>
-                  <p className="text-xs text-zinc-500">Admin</p>
-                </div>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="hidden rounded-md border bg-white px-2 py-1.5 sm:flex sm:space-x-2">
+                    <Avatar>
+                      <AvatarImage src="https://github.com/shadcn.png" />
+                      <AvatarFallback>CN</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium text-zinc-900">Carlos Aguilar</p>
+                      <p className="text-xs text-zinc-500">Admin</p>
+                    </div>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-40" align="start">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-zinc-500">My Account</DropdownMenuLabel>
+                    <DropdownMenuItem>
+                      Profile
+                      <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      Billing
+                      <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      Settings
+                      <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>GitHub</DropdownMenuItem>
+                    <DropdownMenuItem>Support</DropdownMenuItem>
+                    <DropdownMenuItem disabled>API</DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <LogoutMenuItem />
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>
