@@ -1,7 +1,15 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core"
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragOverEvent,
+  DragStartEvent,
+} from "@dnd-kit/core"
+import { arrayMove } from "@dnd-kit/sortable"
 import { FileQuestionMark } from "lucide-react"
 
 import { CanvasDropZone } from "@/components/form/new/canvas-drop-zone"
@@ -18,6 +26,8 @@ import { Separator } from "@/components/ui/separator"
 export function NewFormBuilder() {
   const [fields, setFields] = useState<FormField[]>([])
   const [activeFieldTypeId, setActiveFieldTypeId] = useState<FieldTypeId | null>(null)
+  const [activeDragSource, setActiveDragSource] = useState<"palette" | "canvas" | null>(null)
+  const [overId, setOverId] = useState<string | null>(null)
 
   const activeFieldType = useMemo(
     () => fieldTypes.find((fieldType) => fieldType.id === activeFieldTypeId) ?? null,
@@ -35,26 +45,98 @@ export function NewFormBuilder() {
     ])
   }
 
+  const addFieldAtIndex = (fieldTypeId: FieldTypeId, index: number) => {
+    setFields((current) => {
+      const safeIndex = Math.max(0, Math.min(index, current.length))
+      const newField: FormField = {
+        id: `${fieldTypeId}-${crypto.randomUUID()}`,
+        type: fieldTypeId,
+        label: defaultLabelByType(fieldTypeId),
+      }
+
+      return [...current.slice(0, safeIndex), newField, ...current.slice(safeIndex)]
+    })
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
     const fieldTypeId = event.active.data.current?.fieldTypeId as FieldTypeId | undefined
+    const source = event.active.data.current?.source as "palette" | "canvas" | undefined
+
+    if (source) {
+      setActiveDragSource(source)
+    }
     if (fieldTypeId) {
       setActiveFieldTypeId(fieldTypeId)
     }
   }
 
+  const handleDragOver = (event: DragOverEvent) => {
+    setOverId(event.over?.id ? String(event.over.id) : null)
+  }
+
+  const resetDragState = () => {
+    setActiveFieldTypeId(null)
+    setActiveDragSource(null)
+    setOverId(null)
+  }
+
+  const handleDragCancel = () => {
+    resetDragState()
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
+    const currentOverId = event.over?.id
     const source = event.active.data.current?.source
     const fieldTypeId = event.active.data.current?.fieldTypeId as FieldTypeId | undefined
 
-    if (source === "palette" && event.over?.id === canvasId && fieldTypeId) {
-      addField(fieldTypeId)
+    if (!currentOverId) {
+      resetDragState()
+      return
     }
 
-    setActiveFieldTypeId(null)
+    if (source === "palette" && fieldTypeId) {
+      if (currentOverId === canvasId) {
+        addField(fieldTypeId)
+      } else {
+        const targetIndex = fields.findIndex((field) => field.id === currentOverId)
+        if (targetIndex >= 0) {
+          addFieldAtIndex(fieldTypeId, targetIndex)
+        }
+      }
+    }
+
+    if (source === "canvas") {
+      const activeFieldId = event.active.data.current?.fieldId as string | undefined
+      if (!activeFieldId) {
+        resetDragState()
+        return
+      }
+
+      if (currentOverId === canvasId || activeFieldId === currentOverId) {
+        resetDragState()
+        return
+      }
+
+      const oldIndex = fields.findIndex((field) => field.id === activeFieldId)
+      const newIndex = fields.findIndex((field) => field.id === currentOverId)
+
+      if (oldIndex >= 0 && newIndex >= 0 && oldIndex !== newIndex) {
+        setFields((current) => arrayMove(current, oldIndex, newIndex))
+      }
+    }
+
+    resetDragState()
   }
 
   return (
-    <DndContext id="new-form-dnd-context" onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext
+      id="new-form-dnd-context"
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
+    >
       <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[240px_minmax(0,1fr)_320px]">
         <aside className="min-h-0 overflow-y-auto rounded-2xl border bg-zinc-50 p-4">
           <div className="mb-4">
@@ -77,7 +159,11 @@ export function NewFormBuilder() {
           </div>
 
           <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
-            <CanvasDropZone fields={fields} />
+            <CanvasDropZone
+              fields={fields}
+              insertBeforeFieldId={overId}
+              showInsertAtEnd={Boolean(activeDragSource) && overId === canvasId}
+            />
           </div>
         </section>
 

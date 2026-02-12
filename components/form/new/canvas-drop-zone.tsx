@@ -1,12 +1,69 @@
 "use client"
 
 import { useDroppable } from "@dnd-kit/core"
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import { Hand } from "lucide-react"
 
 import { FieldPreview } from "@/components/form/new/field-preview"
 import { canvasId, type FormField } from "@/components/form/new/types"
 
-export function CanvasDropZone({ fields }: { fields: FormField[] }) {
+function InsertIndicator() {
+  return (
+    <div className="relative my-1 h-0.5 rounded bg-primary/70">
+      <span className="absolute -left-0.5 -top-1 size-2 rounded-full bg-primary" />
+    </div>
+  )
+}
+
+function SortableCanvasItem({
+  field,
+  index,
+  showInsertBefore,
+}: {
+  field: FormField
+  index: number
+  showInsertBefore: boolean
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: field.id,
+    data: {
+      source: "canvas",
+      fieldId: field.id,
+    },
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <div>
+      {showInsertBefore ? <InsertIndicator /> : null}
+      <article
+        ref={setNodeRef}
+        style={style}
+        className={`rounded-lg border bg-zinc-50 p-4 ${isDragging ? "opacity-60" : ""}`}
+        {...attributes}
+        {...listeners}
+      >
+        <p className="mb-2 text-xs font-semibold text-zinc-500">Campo {index + 1}</p>
+        <FieldPreview field={field} />
+      </article>
+    </div>
+  )
+}
+
+export function CanvasDropZone({
+  fields,
+  insertBeforeFieldId,
+  showInsertAtEnd,
+}: {
+  fields: FormField[]
+  insertBeforeFieldId: string | null
+  showInsertAtEnd: boolean
+}) {
   const { isOver, setNodeRef } = useDroppable({
     id: canvasId,
   })
@@ -39,12 +96,17 @@ export function CanvasDropZone({ fields }: { fields: FormField[] }) {
         isOver ? "border-primary bg-primary/5" : "border-zinc-200"
       }`}
     >
-      {fields.map((field, index) => (
-        <article key={field.id} className="rounded-lg border bg-zinc-50 p-4">
-          <p className="mb-2 text-xs font-semibold text-zinc-500">Campo {index + 1}</p>
-          <FieldPreview field={field} />
-        </article>
-      ))}
+      <SortableContext items={fields.map((field) => field.id)} strategy={verticalListSortingStrategy}>
+        {fields.map((field, index) => (
+          <SortableCanvasItem
+            key={field.id}
+            field={field}
+            index={index}
+            showInsertBefore={insertBeforeFieldId === field.id}
+          />
+        ))}
+      </SortableContext>
+      {showInsertAtEnd ? <InsertIndicator /> : null}
     </section>
   )
 }
