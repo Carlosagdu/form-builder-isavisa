@@ -16,6 +16,9 @@ export type FormField = {
   id: string
   type: FieldTypeId
   label: string
+  placeholder: string
+  required: boolean
+  options: string[]
 }
 
 export const canvasId = "form-canvas"
@@ -37,4 +40,12 @@ export function defaultLabelByType(type: FieldTypeId) {
     default:
       return "Campo"
   }
+}
+
+export function supportsOptions(type: FieldTypeId) {
+  return type === "single-select" || type === "multi-select"
+}
+
+export function supportsPlaceholder(type: FieldTypeId) {
+  return type === "short-text" || type === "long-text" || type === "number"
 }

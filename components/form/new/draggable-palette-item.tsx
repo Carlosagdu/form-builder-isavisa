@@ -32,6 +32,7 @@ export function DraggablePaletteItem({
       ref={setNodeRef}
       type="button"
       variant={"outline"}
+      className="border-l-primary border-l-3"
       style={style}
       onClick={() => onClick(fieldType.id)}
       {...listeners}

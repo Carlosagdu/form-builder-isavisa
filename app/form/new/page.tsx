@@ -1,5 +1,5 @@
-import { NewFormBuilder } from "@/components/form/new/new-form-builder"
+import { NewFormHeader } from "@/components/form/new/new-form-header"
 
 export default function NewFormPage() {
-  return <NewFormBuilder />
+  return <NewFormHeader />
 }

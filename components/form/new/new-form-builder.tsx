@@ -8,12 +8,15 @@ import {
   DragOverlay,
   DragOverEvent,
   DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core"
 import { arrayMove } from "@dnd-kit/sortable"
-import { FileQuestionMark } from "lucide-react"
 
 import { CanvasDropZone } from "@/components/form/new/canvas-drop-zone"
 import { DraggablePaletteItem } from "@/components/form/new/draggable-palette-item"
+import { FieldPropertiesPanel } from "@/components/form/new/field-properties-panel"
 import {
   canvasId,
   defaultLabelByType,
@@ -22,40 +25,75 @@ import {
   type FormField,
 } from "@/components/form/new/types"
 import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
 
-export function NewFormBuilder() {
+export function NewFormBuilder({
+  formTitle,
+  formDescription,
+  onFormTitleChange,
+  onFormDescriptionChange,
+}: {
+  formTitle: string
+  formDescription: string
+  onFormTitleChange: (value: string) => void
+  onFormDescriptionChange: (value: string) => void
+}) {
+  const [editingFormField, setEditingFormField] = useState<"title" | "description" | null>(null)
   const [fields, setFields] = useState<FormField[]>([])
+  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
   const [activeFieldTypeId, setActiveFieldTypeId] = useState<FieldTypeId | null>(null)
   const [activeDragSource, setActiveDragSource] = useState<"palette" | "canvas" | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  )
 
   const activeFieldType = useMemo(
     () => fieldTypes.find((fieldType) => fieldType.id === activeFieldTypeId) ?? null,
     [activeFieldTypeId]
   )
 
+  const selectedField = useMemo(
+    () => fields.find((field) => field.id === selectedFieldId) ?? null,
+    [fields, selectedFieldId]
+  )
+
+  const createField = (fieldTypeId: FieldTypeId): FormField => ({
+    id: `${fieldTypeId}-${crypto.randomUUID()}`,
+    type: fieldTypeId,
+    label: defaultLabelByType(fieldTypeId),
+    placeholder: "",
+    required: false,
+    options: fieldTypeId === "single-select" || fieldTypeId === "multi-select" ? ["Opcion 1", "Opcion 2"] : [],
+  })
+
   const addField = (fieldTypeId: FieldTypeId) => {
-    setFields((current) => [
-      ...current,
-      {
-        id: `${fieldTypeId}-${crypto.randomUUID()}`,
-        type: fieldTypeId,
-        label: defaultLabelByType(fieldTypeId),
-      },
-    ])
+    const newField = createField(fieldTypeId)
+    setFields((current) => [...current, newField])
+    setSelectedFieldId(newField.id)
   }
 
   const addFieldAtIndex = (fieldTypeId: FieldTypeId, index: number) => {
+    const newField = createField(fieldTypeId)
     setFields((current) => {
       const safeIndex = Math.max(0, Math.min(index, current.length))
-      const newField: FormField = {
-        id: `${fieldTypeId}-${crypto.randomUUID()}`,
-        type: fieldTypeId,
-        label: defaultLabelByType(fieldTypeId),
-      }
-
       return [...current.slice(0, safeIndex), newField, ...current.slice(safeIndex)]
     })
+    setSelectedFieldId(newField.id)
+  }
+
+  const updateField = (fieldId: string, updates: Partial<FormField>) => {
+    setFields((current) => current.map((field) => (field.id === fieldId ? { ...field, ...updates } : field)))
+  }
+
+  const finishEditingFormField = () => {
+    setEditingFormField(null)
   }
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -131,6 +169,7 @@ export function NewFormBuilder() {
   return (
     <DndContext
       id="new-form-dnd-context"
+      sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
@@ -146,6 +185,7 @@ export function NewFormBuilder() {
           </div>
 
           <div className="flex flex-col space-y-2">
+            <h2 className="text-sm font-semibold text-zinc-900 mb-1 md:mb-3">Campos Basicos</h2>
             {fieldTypes.map((fieldType) => (
               <DraggablePaletteItem key={fieldType.id} fieldType={fieldType} onClick={addField} />
             ))}
@@ -154,8 +194,48 @@ export function NewFormBuilder() {
 
         <section className="flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-zinc-50 p-4">
           <div className="rounded-xl border border-b-3 border-b-primary bg-white px-4 py-10 text-center">
-            <h1 className="text-2xl font-semibold text-zinc-900">Formulario sin titulo</h1>
-            <p className="mt-2 text-sm text-zinc-500">Click para editar la descripcion del formulario</p>
+            {editingFormField === "title" ? (
+              <Input
+                autoFocus
+                value={formTitle}
+                onChange={(event) => onFormTitleChange(event.target.value)}
+                onBlur={finishEditingFormField}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    finishEditingFormField()
+                  }
+                }}
+                className="mx-auto h-11 max-w-xl text-center text-2xl font-semibold"
+              />
+            ) : (
+              <Button
+                variant={"ghost"}
+                size={"lg"}
+                className="mx-auto block text-2xl font-semibold text-zinc-900 hover:text-primary"
+                onClick={() => setEditingFormField("title")}
+              >
+                {formTitle}
+              </Button>
+            )}
+
+            {editingFormField === "description" ? (
+              <Textarea
+                autoFocus
+                value={formDescription}
+                onChange={(event) => onFormDescriptionChange(event.target.value)}
+                onBlur={finishEditingFormField}
+                className="mx-auto mt-2 min-h-20 max-w-xl text-center text-sm text-zinc-600"
+              />
+            ) : (
+              <Button
+                type="button"
+                variant={"ghost"}
+                className="mx-auto mt-2 block text-sm text-zinc-500 hover:text-primary"
+                onClick={() => setEditingFormField("description")}
+              >
+                {formDescription}
+              </Button>
+            )}
           </div>
 
           <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
@@ -163,22 +243,13 @@ export function NewFormBuilder() {
               fields={fields}
               insertBeforeFieldId={overId}
               showInsertAtEnd={Boolean(activeDragSource) && overId === canvasId}
+              selectedFieldId={selectedFieldId}
+              onSelectField={setSelectedFieldId}
             />
           </div>
         </section>
 
-        <aside className="flex min-h-0 flex-col overflow-y-auto rounded-2xl border bg-zinc-50 p-4">
-          <h2 className="text-center text-base font-semibold text-zinc-900">Propiedades del campo</h2>
-          <p className="mt-1 text-center text-sm text-zinc-500">Configura un campo seleccionado</p>
-          <Separator className="my-3" />
-          <div className="flex flex-1 flex-col items-center justify-center">
-            <FileQuestionMark size={50} />
-            <p className="text-base font-semibold text-zinc-900">Ningun campo seleccionado</p>
-            <p className="text-center text-sm text-zinc-700">
-              Selecciona un campo del canvas y configura sus propiedades
-            </p>
-          </div>
-        </aside>
+        <FieldPropertiesPanel selectedField={selectedField} onUpdateField={updateField} />
       </div>
 
       <DragOverlay>

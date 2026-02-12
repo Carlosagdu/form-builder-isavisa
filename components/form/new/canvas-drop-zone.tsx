@@ -3,7 +3,7 @@
 import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { Hand } from "lucide-react"
+import { GripVertical, Hand } from "lucide-react"
 
 import { FieldPreview } from "@/components/form/new/field-preview"
 import { canvasId, type FormField } from "@/components/form/new/types"
@@ -20,18 +20,23 @@ function SortableCanvasItem({
   field,
   index,
   showInsertBefore,
+  isSelected,
+  onSelect,
 }: {
   field: FormField
   index: number
   showInsertBefore: boolean
+  isSelected: boolean
+  onSelect: (fieldId: string) => void
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+    useSortable({
     id: field.id,
     data: {
       source: "canvas",
       fieldId: field.id,
     },
-  })
+    })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -44,11 +49,24 @@ function SortableCanvasItem({
       <article
         ref={setNodeRef}
         style={style}
-        className={`rounded-lg border bg-zinc-50 p-4 ${isDragging ? "opacity-60" : ""}`}
-        {...attributes}
-        {...listeners}
+        className={`rounded-lg border bg-zinc-50 p-4 ${
+          isSelected ? "border-primary ring-2 ring-primary/30" : ""
+        } ${isDragging ? "opacity-60" : ""}`}
+        onClick={() => onSelect(field.id)}
       >
-        <p className="mb-2 text-xs font-semibold text-zinc-500">Campo {index + 1}</p>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-semibold text-zinc-500">Campo {index + 1}</p>
+          <button
+            ref={setActivatorNodeRef}
+            type="button"
+            className="inline-flex cursor-grab items-center rounded-md border bg-white p-1 text-zinc-500 hover:bg-zinc-100 active:cursor-grabbing"
+            aria-label="Arrastrar campo"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="size-4" />
+          </button>
+        </div>
         <FieldPreview field={field} />
       </article>
     </div>
@@ -59,10 +77,14 @@ export function CanvasDropZone({
   fields,
   insertBeforeFieldId,
   showInsertAtEnd,
+  selectedFieldId,
+  onSelectField,
 }: {
   fields: FormField[]
   insertBeforeFieldId: string | null
   showInsertAtEnd: boolean
+  selectedFieldId: string | null
+  onSelectField: (fieldId: string) => void
 }) {
   const { isOver, setNodeRef } = useDroppable({
     id: canvasId,
@@ -103,6 +125,8 @@ export function CanvasDropZone({
             field={field}
             index={index}
             showInsertBefore={insertBeforeFieldId === field.id}
+            isSelected={selectedFieldId === field.id}
+            onSelect={onSelectField}
           />
         ))}
       </SortableContext>
