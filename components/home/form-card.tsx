@@ -27,9 +27,9 @@ const STATUS_LABEL: Record<FormCardData["status"], string> = {
 
 export function FormCard({ form }: FormCardProps) {
   return (
-    <Card className="h-100 md:h-75 gap-0 overflow-hidden rounded-2xl py-0 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
+    <Card className="h-100 md:h-70 gap-0 overflow-hidden rounded-2xl py-0 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
       <CardHeader className="grid-cols-[1fr_auto] px-6 pt-6 pb-4">
-        <CardTitle className="pr-3 text-xl font-bold tracking-tight text-zinc-900">
+        <CardTitle className="pr-3 text-lg font-bold tracking-tight text-zinc-900">
           {form.title}
         </CardTitle>
         <span
@@ -43,7 +43,7 @@ export function FormCard({ form }: FormCardProps) {
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col px-6 pb-4">
-        <p className="flex-1 overflow-hidden text-base leading-6 text-zinc-600">
+        <p className="flex-1 overflow-hidden text-sm leading-6 text-zinc-600">
           {form.description}
         </p>
 
@@ -56,7 +56,7 @@ export function FormCard({ form }: FormCardProps) {
       </CardContent>
 
       <CardFooter className="justify-between border-t px-6 py-4">
-        <p className="flex items-center gap-2 text-base font-semibold text-zinc-900">
+        <p className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
           <Users className="h-5 w-5 text-orange-500" />
           {form.submissionsCount} Responses
         </p>
