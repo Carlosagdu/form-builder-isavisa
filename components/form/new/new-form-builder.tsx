@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import {
   closestCenter,
   DndContext,
@@ -46,6 +46,7 @@ export function NewFormBuilder({
   const [activeFieldTypeId, setActiveFieldTypeId] = useState<FieldTypeId | null>(null)
   const [activeDragSource, setActiveDragSource] = useState<"palette" | "canvas" | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
+  const suppressNextPaletteClickRef = useRef(false)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -92,6 +93,11 @@ export function NewFormBuilder({
     setFields((current) => current.map((field) => (field.id === fieldId ? { ...field, ...updates } : field)))
   }
 
+  const deleteField = (fieldId: string) => {
+    setFields((current) => current.filter((field) => field.id !== fieldId))
+    setSelectedFieldId((current) => (current === fieldId ? null : current))
+  }
+
   const finishEditingFormField = () => {
     setEditingFormField(null)
   }
@@ -102,6 +108,9 @@ export function NewFormBuilder({
 
     if (source) {
       setActiveDragSource(source)
+      if (source === "palette") {
+        suppressNextPaletteClickRef.current = true
+      }
     }
     if (fieldTypeId) {
       setActiveFieldTypeId(fieldTypeId)
@@ -120,6 +129,9 @@ export function NewFormBuilder({
 
   const handleDragCancel = () => {
     resetDragState()
+    setTimeout(() => {
+      suppressNextPaletteClickRef.current = false
+    }, 0)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -164,6 +176,9 @@ export function NewFormBuilder({
     }
 
     resetDragState()
+    setTimeout(() => {
+      suppressNextPaletteClickRef.current = false
+    }, 0)
   }
 
   return (
@@ -245,6 +260,7 @@ export function NewFormBuilder({
               showInsertAtEnd={Boolean(activeDragSource) && overId === canvasId}
               selectedFieldId={selectedFieldId}
               onSelectField={setSelectedFieldId}
+              onDeleteField={deleteField}
             />
           </div>
         </section>
@@ -254,7 +270,7 @@ export function NewFormBuilder({
 
       <DragOverlay>
         {activeFieldType ? (
-          <div className="flex items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm font-medium text-zinc-800 shadow-sm">
+          <div className="flex items-center gap-2 rounded-md border-l-primary border-l-3 bg-background px-3 py-2 text-sm font-medium text-zinc-800 shadow-sm">
             <activeFieldType.icon className="size-4" />
             {activeFieldType.label}
           </div>

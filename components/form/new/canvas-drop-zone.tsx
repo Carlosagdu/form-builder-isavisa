@@ -3,11 +3,12 @@
 import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { GripVertical, Hand } from "lucide-react"
+import { GripVertical, Hand, Trash2 } from "lucide-react"
 
 import { FieldPreview } from "@/components/form/new/field-preview"
 import { canvasId, type FormField } from "@/components/form/new/types"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Button } from "@/components/ui/button"
 
 function InsertIndicator() {
   return (
@@ -23,12 +24,14 @@ function SortableCanvasItem({
   showInsertBefore,
   isSelected,
   onSelect,
+  onDelete,
 }: {
   field: FormField
   index: number
   showInsertBefore: boolean
   isSelected: boolean
   onSelect: (fieldId: string) => void
+  onDelete: (fieldId: string) => void
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({
@@ -57,16 +60,33 @@ function SortableCanvasItem({
       >
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs font-semibold text-zinc-500">Campo {index + 1}</p>
-          <button
-            ref={setActivatorNodeRef}
-            type="button"
-            className="inline-flex cursor-grab items-center rounded-md border bg-white p-1 text-zinc-500 hover:bg-zinc-100 active:cursor-grabbing"
-            aria-label="Arrastrar campo"
-            {...attributes}
-            {...listeners}
-          >
-            <GripVertical className="size-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <Button
+              size={"icon-xs"}
+              variant={"ghost"}
+              type="button"
+              className="text-rose-600 hover:text-rose-700 bg-white"
+              aria-label="Eliminar campo"
+              onClick={(event) => {
+                event.stopPropagation()
+                onDelete(field.id)
+              }}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+            <Button
+              size={"icon-xs"}
+              variant={"ghost"}
+              ref={setActivatorNodeRef}
+              type="button"
+              className="inline-flex cursor-grab items-center rounded-md border bg-white p-1 text-zinc-500 hover:bg-zinc-100 active:cursor-grabbing"
+              aria-label="Arrastrar campo"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="size-4" />
+            </Button>
+          </div>
         </div>
         <FieldPreview field={field} />
       </article>
@@ -80,12 +100,14 @@ export function CanvasDropZone({
   showInsertAtEnd,
   selectedFieldId,
   onSelectField,
+  onDeleteField,
 }: {
   fields: FormField[]
   insertBeforeFieldId: string | null
   showInsertAtEnd: boolean
   selectedFieldId: string | null
   onSelectField: (fieldId: string) => void
+  onDeleteField: (fieldId: string) => void
 }) {
   const { isOver, setNodeRef } = useDroppable({
     id: canvasId,
@@ -130,6 +152,7 @@ export function CanvasDropZone({
             showInsertBefore={insertBeforeFieldId === field.id}
             isSelected={selectedFieldId === field.id}
             onSelect={onSelectField}
+            onDelete={onDeleteField}
           />
         ))}
       </SortableContext>
