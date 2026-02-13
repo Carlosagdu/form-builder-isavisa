@@ -1,4 +1,5 @@
 import { CalendarDays, Eye, PencilLine, Trash2, Users } from "lucide-react"
+import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -72,12 +73,14 @@ export function FormCard({ form }: FormCardProps) {
             <Trash2 className="h-4 w-4" />
           </Button>
           <Button
-            type="button"
             size="icon-sm"
             variant="ghost"
+            asChild
             aria-label={`Preview ${form.title}`}
           >
-            <Eye className="h-4 w-4" />
+            <Link href={`/form/${form.id}/preview`}>
+              <Eye className="h-4 w-4" />
+            </Link>
           </Button>
           <Button
             type="button"

@@ -20,6 +20,7 @@ export function NewFormHeader() {
   const [formDescription, setFormDescription] = useState("Click para editar la descripcion del formulario")
   const [fields, setFields] = useState<FormField[]>([])
   const [isPublishing, setIsPublishing] = useState(false)
+  const [isOpeningPreview, setIsOpeningPreview] = useState(false)
 
   const headerTitle = useMemo(
     () => formTitle.trim() || "Formulario nuevo",
@@ -51,6 +52,30 @@ export function NewFormHeader() {
     setIsPublishing(false)
   }
 
+  const handleOpenPreview = async () => {
+    if (isOpeningPreview) return
+    setIsOpeningPreview(true)
+
+    const result = await createDraftFormAction({
+      title: formTitle,
+      description: formDescription,
+      status: "draft",
+      schema: {
+        version: 1,
+        fields,
+      },
+    })
+
+    if (!result.ok) {
+      toast.error(result.error, { position: "top-center" })
+      setIsOpeningPreview(false)
+      return
+    }
+
+    router.push(`/form/${result.data.id}/preview`)
+    setIsOpeningPreview(false)
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col border bg-white p-3 md:p-4">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
@@ -70,7 +95,7 @@ export function NewFormHeader() {
             <CircleCheck data-icon="inline-start" />
             Auto guardado
           </Badge>
-          <Button type="button" variant="ghost" size="sm">
+          <Button type="button" variant="ghost" size="sm" onClick={handleOpenPreview} disabled={isOpeningPreview}>
             <Eye data-icon="inline-start" />
             Vista previa
           </Button>
