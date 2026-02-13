@@ -7,6 +7,7 @@ import { GripVertical, Hand } from "lucide-react"
 
 import { FieldPreview } from "@/components/form/new/field-preview"
 import { canvasId, type FormField } from "@/components/form/new/types"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function InsertIndicator() {
   return (
@@ -94,19 +95,21 @@ export function CanvasDropZone({
     return (
       <section
         ref={setNodeRef}
-        className={`rounded-xl flex flex-col items-center justify-center border border-dashed h-full bg-white p-6 md:p-10 ${
+        className={`rounded-xl flex flex-col items-center h-full bg-white p-6 md:p-10 ${
           isOver ? "border-primary bg-primary/5" : ""
         }`}
       >
-        <div className="mx-auto flex max-w-md flex-col items-center justify-center rounded-xl border border-dashed bg-background px-6 py-12 text-center">
-          <div className="mb-4 rounded-full border bg-white p-3 text-zinc-700">
-            <Hand className="size-6" />
-          </div>
-          <p className="text-base font-semibold text-zinc-900">Arrastra y suelta campos aqui</p>
-          <p className="mt-2 text-sm text-zinc-600">
-            Elige un tipo de campo en la columna izquierda y sueltalo en el canvas para empezar.
-          </p>
-        </div>
+        <Empty className="mx-auto max-w-md border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon" className="bg-white">
+              <Hand className="size-12" />
+            </EmptyMedia>
+            <EmptyTitle>Arrastra y suelta campos aqui</EmptyTitle>
+            <EmptyDescription>
+              Elige un tipo de campo en la columna izquierda y sueltalo en el canvas para empezar.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </section>
     )
   }

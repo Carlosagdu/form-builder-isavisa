@@ -9,6 +9,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react"
 
+import { createClient } from "@/lib/supabase/server"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -23,11 +24,30 @@ const menuItems = [
   { label: "Form Responses", icon: SlidersHorizontal, href: "#" },
 ]
 
-export default function DashboardLayout({
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return "US"
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+}
+
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const metadata = (user?.user_metadata ?? {}) as Record<string, unknown>
+  const displayName = typeof metadata.display_name === "string" && metadata.display_name.trim()
+    ? metadata.display_name.trim()
+    : "Usuario"
+  const avatarFallback = getInitials(displayName)
+  const firstName = displayName.split(" ")[0] || "Usuario"
+
   return (
     <div className="m-4 h-[calc(100vh-2rem)] md:m-6 md:h-[calc(100vh-3rem)] md:grid md:grid-cols-[260px_1fr] lg:m-0 lg:h-screen">
       <aside className="hidden overflow-y-auto border-r bg-white px-4 py-6 md:block">
@@ -36,7 +56,11 @@ export default function DashboardLayout({
             <p className="text-xl font-semibold text-zinc-900">Isavisa Builder</p>
             <p className="text-sm text-zinc-500">Form Builder</p>
           </div>
-          <Button className="text-white hover:bg-lime-700">+ Nuevo formulario</Button>
+          <Button asChild className="text-white hover:bg-lime-700">
+            <Link href="/form/new">
+              + Nuevo formulario
+            </Link>
+          </Button>
           <nav className="space-y-1">
             {menuItems.map((item) => {
               const Icon = item.icon
@@ -72,7 +96,7 @@ export default function DashboardLayout({
         <header className="border-b bg-white px-4 py-4 md:px-6">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0 border-r pr-3">
-              <p className="truncate text-lg font-semibold text-zinc-900">Hola Carlos 👋🏻</p>
+              <p className="truncate text-lg font-semibold text-zinc-900">{`Hola ${firstName} 👋🏻`}</p>
               <p className="text-sm text-zinc-500">Buenos dias</p>
             </div>
 
@@ -85,10 +109,10 @@ export default function DashboardLayout({
                   <div className="hidden rounded-md border bg-white px-2 py-1.5 sm:flex sm:space-x-2">
                     <Avatar>
                       <AvatarImage src="https://github.com/shadcn.png" />
-                      <AvatarFallback>CN</AvatarFallback>
+                      <AvatarFallback>{avatarFallback}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-medium text-zinc-900">Carlos Aguilar</p>
+                      <p className="text-sm font-medium text-zinc-900">{displayName}</p>
                       <p className="text-xs text-zinc-500">Admin</p>
                     </div>
                   </div>
