@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { useEffect } from "react"
+import type { FormStatus } from "@/lib/forms/types"
 
 export function NewFormHeader() {
   const router = useRouter()
@@ -85,7 +86,9 @@ export function NewFormHeader() {
     }
   }, [hydratedDraftId, searchParams])
 
-  const saveDraft = async () => {
+  type EditableFormStatus = Extract<FormStatus, "draft" | "published">
+
+  const saveForm = async (status: EditableFormStatus) => {
     const persistedDraftId = searchParams.get("draftId")
     const targetDraftId = currentDraftId ?? persistedDraftId
 
@@ -94,7 +97,7 @@ export function NewFormHeader() {
         id: targetDraftId,
         title: formTitle,
         description: formDescription,
-        status: "draft",
+        status,
         schema: schemaPayload,
       })
 
@@ -108,7 +111,7 @@ export function NewFormHeader() {
     const createResult = await createDraftFormAction({
       title: formTitle,
       description: formDescription,
-      status: "draft",
+      status,
       schema: schemaPayload,
     })
 
@@ -127,7 +130,7 @@ export function NewFormHeader() {
     if (isPublishing) return
     setIsPublishing(true)
 
-    const result = await saveDraft()
+    const result = await saveForm("published")
 
     if (!result.ok) {
       toast.error(result.error, { position: "top-center" })
@@ -135,7 +138,7 @@ export function NewFormHeader() {
       return
     }
 
-    toast.success("Formulario guardado correctamente", { position: "top-center" })
+    toast.success("Formulario publicado correctamente", { position: "top-center" })
     router.push("/")
     setIsPublishing(false)
   }
@@ -144,7 +147,7 @@ export function NewFormHeader() {
     if (isOpeningPreview) return
     setIsOpeningPreview(true)
 
-    const result = await saveDraft()
+    const result = await saveForm("draft")
 
     if (!result.ok) {
       toast.error(result.error, { position: "top-center" })

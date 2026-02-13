@@ -243,7 +243,7 @@ export function NewFormBuilder({
             {editingFormField === "description" ? (
               <Input
                 autoFocus
-                placeholder="Click para editar la descripcion del formulario"
+                placeholder="Por favor ingresa una corta descripcion del formulario"
                 value={formDescription}
                 onChange={(event) => onFormDescriptionChange(event.target.value)}
                 onBlur={finishEditingFormField}
@@ -256,7 +256,7 @@ export function NewFormBuilder({
                 className="mx-auto mt-2 block text-sm text-zinc-500 hover:text-primary"
                 onClick={() => setEditingFormField("description")}
               >
-                {formDescription}
+                {formDescription.length == 0 ? "Por favor ingresa una corta descripcion del formulario" : formDescription}
               </Button>
             )}
           </div>
