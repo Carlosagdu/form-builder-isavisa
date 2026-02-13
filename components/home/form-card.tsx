@@ -19,11 +19,13 @@ interface FormCardProps {
 const STATUS_STYLES: Record<FormCardData["status"], string> = {
   published: "bg-emerald-50 text-emerald-700",
   draft: "bg-amber-50 text-amber-700",
+  archived: "bg-sky-50 text-sky-700"
 }
 
 const STATUS_LABEL: Record<FormCardData["status"], string> = {
   published: "Published",
   draft: "Draft",
+  archived: "Archived"
 }
 
 export function FormCard({ form }: FormCardProps) {
@@ -88,7 +90,9 @@ export function FormCard({ form }: FormCardProps) {
             variant="ghost"
             aria-label={`Edit ${form.title}`}
           >
-            <PencilLine className="h-4 w-4" />
+            <Link href={`/form/new?draftId=${form.id}`}>
+              <PencilLine className="h-4 w-4" />
+            </Link>
           </Button>
         </div>
       </CardFooter>

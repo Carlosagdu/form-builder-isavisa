@@ -26,7 +26,6 @@ import {
 } from "@/components/form/new/types"
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 
 export function NewFormBuilder({
@@ -35,15 +34,17 @@ export function NewFormBuilder({
   onFormTitleChange,
   onFormDescriptionChange,
   onFieldsChange,
+  initialFields = [],
 }: {
   formTitle: string
   formDescription: string
   onFormTitleChange: (value: string) => void
   onFormDescriptionChange: (value: string) => void
   onFieldsChange?: (fields: FormField[]) => void
+  initialFields?: FormField[]
 }) {
   const [editingFormField, setEditingFormField] = useState<"title" | "description" | null>(null)
-  const [fields, setFields] = useState<FormField[]>([])
+  const [fields, setFields] = useState<FormField[]>(initialFields)
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
   const [activeFieldTypeId, setActiveFieldTypeId] = useState<FieldTypeId | null>(null)
   const [activeDragSource, setActiveDragSource] = useState<"palette" | "canvas" | null>(null)
@@ -240,12 +241,13 @@ export function NewFormBuilder({
             )}
 
             {editingFormField === "description" ? (
-              <Textarea
+              <Input
                 autoFocus
+                placeholder="Click para editar la descripcion del formulario"
                 value={formDescription}
                 onChange={(event) => onFormDescriptionChange(event.target.value)}
                 onBlur={finishEditingFormField}
-                className="mx-auto mt-2 min-h-20 max-w-xl text-center text-sm text-zinc-600"
+                className="mx-auto max-w-xl text-center text-sm text-zinc-600"
               />
             ) : (
               <Button

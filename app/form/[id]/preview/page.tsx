@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, PencilLine } from "lucide-react"
 import { notFound, redirect } from "next/navigation"
 
 import { FormRenderer } from "@/components/form/renderer/form-renderer"
@@ -18,10 +18,16 @@ export default function FormPreviewPage({
       fallback={
         <div className="h-screen overflow-y-auto bg-zinc-50 p-4 md:p-6">
           <div className="mx-auto mb-4 flex w-full max-w-3xl items-center justify-between">
-            <Button variant="outline" size="sm" disabled>
-              <ArrowLeft className="size-4" />
-              Volver al dashboard
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" disabled>
+                <ArrowLeft className="size-4" />
+                Volver al dashboard
+              </Button>
+              <Button size="sm" disabled>
+                <PencilLine className="size-4" />
+                Volver a editar
+              </Button>
+            </div>
           </div>
           <FormRendererSkeleton />
         </div>
@@ -57,12 +63,20 @@ async function FormPreviewContent({
   return (
     <div className="h-screen overflow-y-auto bg-zinc-50 p-4 md:p-6">
       <div className="mx-auto mb-4 flex w-full max-w-3xl items-center justify-between">
-        <Button asChild variant="outline" size="sm">
-          <Link href="/">
-            <ArrowLeft className="size-4" />
-            Volver al dashboard
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/">
+              <ArrowLeft className="size-4" />
+              Volver al dashboard
+            </Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link href={`/form/new?draftId=${id}`}>
+              <PencilLine className="size-4" />
+              Volver a editar
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <FormRenderer
