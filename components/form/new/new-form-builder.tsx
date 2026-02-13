@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   closestCenter,
   DndContext,
@@ -34,11 +34,13 @@ export function NewFormBuilder({
   formDescription,
   onFormTitleChange,
   onFormDescriptionChange,
+  onFieldsChange,
 }: {
   formTitle: string
   formDescription: string
   onFormTitleChange: (value: string) => void
   onFormDescriptionChange: (value: string) => void
+  onFieldsChange?: (fields: FormField[]) => void
 }) {
   const [editingFormField, setEditingFormField] = useState<"title" | "description" | null>(null)
   const [fields, setFields] = useState<FormField[]>([])
@@ -180,6 +182,10 @@ export function NewFormBuilder({
       suppressNextPaletteClickRef.current = false
     }, 0)
   }
+
+  useEffect(() => {
+    onFieldsChange?.(fields)
+  }, [fields, onFieldsChange])
 
   return (
     <DndContext
