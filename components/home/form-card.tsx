@@ -1,5 +1,8 @@
-import { CalendarDays, Eye, PencilLine, Trash2, Users } from "lucide-react"
+"use client"
+
+import { CalendarDays, Copy, Eye, PencilLine, Users } from "lucide-react"
 import Link from "next/link"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -29,6 +32,22 @@ const STATUS_LABEL: Record<FormCardData["status"], string> = {
 }
 
 export function FormCard({ form }: FormCardProps) {
+  const handleCopyLink = async () => {
+    if (form.status !== "published") {
+      toast.error("Solo puedes copiar enlaces de formularios publicados.", {
+        position: "top-center",
+      })
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/form/${form.id}`)
+      toast.success("Enlace copiado al portapapeles.", { position: "top-center" })
+    } catch {
+      toast.error("No se pudo copiar el enlace.", { position: "top-center" })
+    }
+  }
+
   return (
     <Card className="h-100 md:h-70 gap-0 overflow-hidden rounded-2xl py-0 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
       <CardHeader className="grid-cols-[1fr_auto] px-6 pt-6 pb-4">
@@ -69,10 +88,11 @@ export function FormCard({ form }: FormCardProps) {
             type="button"
             size="icon-sm"
             variant="ghost"
-            aria-label={`Delete ${form.title}`}
+            aria-label={`Copiar enlace de ${form.title}`}
             className="text-rose-500 hover:text-rose-600"
+            onClick={handleCopyLink}
           >
-            <Trash2 className="h-4 w-4" />
+            <Copy className="h-4 w-4" />
           </Button>
           <Button
             size="icon-sm"
@@ -85,9 +105,9 @@ export function FormCard({ form }: FormCardProps) {
             </Link>
           </Button>
           <Button
-            type="button"
             size="icon-sm"
             variant="ghost"
+            asChild
             aria-label={`Edit ${form.title}`}
           >
             <Link href={`/form/new?draftId=${form.id}`}>

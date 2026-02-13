@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation"
 
-import { FormRenderer } from "@/components/form/renderer/form-renderer"
-import { Button } from "@/components/ui/button"
+import { FormResponseForm } from "@/components/form/respond/form-response-form"
 import { getPublishedFormById } from "@/lib/forms/repository"
 
 export default async function RespondFormPage({
@@ -18,18 +17,12 @@ export default async function RespondFormPage({
 
   return (
     <div className="min-h-screen bg-zinc-50 p-4 md:p-6">
-      <div className="mx-auto w-full max-w-3xl">
-        <FormRenderer
-          title={form.title}
-          description={form.description}
-          fields={form.schema.fields}
-        />
-
-        <div className="mt-4 flex justify-end">
-          <Button type="button">Enviar respuesta</Button>
-        </div>
-      </div>
+      <FormResponseForm
+        formId={form.id}
+        title={form.title}
+        description={form.description}
+        fields={form.schema.fields}
+      />
     </div>
   )
 }
-

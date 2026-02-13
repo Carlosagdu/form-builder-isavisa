@@ -54,6 +54,25 @@ export type UpdateFormInput = {
   schema?: FormSchema
 }
 
+export type FormAnswers = Record<string, unknown>
+
+export type FormResponseRecord = {
+  id: string
+  formId: string
+  answers: FormAnswers
+  submittedAt: string
+  createdAt: string
+  ip: string | null
+  userAgent: string | null
+}
+
+export type CreateFormResponseInput = {
+  formId: string
+  answers: FormAnswers
+  ip?: string | null
+  userAgent?: string | null
+}
+
 const formFieldTypeIdSchema = z.enum(formFieldTypeIds)
 
 const formFieldSchema = z.object({
@@ -70,6 +89,8 @@ export const formSchemaValidator = z.object({
   fields: z.array(formFieldSchema),
 })
 
+export const formAnswersValidator = z.record(z.string(), z.unknown())
+
 export const defaultFormSchema: FormSchema = {
   version: 1,
   fields: [],
@@ -83,4 +104,3 @@ export function parseFormSchema(value: unknown): FormSchema {
 
   return parsed.data
 }
-
