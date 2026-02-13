@@ -1,5 +1,7 @@
 import "server-only"
 
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+
 import { createClient } from "@/lib/supabase/server"
 import {
   defaultFormSchema,
@@ -35,6 +37,17 @@ function mapRowToForm(row: FormRow): FormRecord {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
+}
+
+function getSupabaseServiceEnv() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!url || !serviceRoleKey) {
+    throw new Error("Missing Supabase env vars: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY")
+  }
+
+  return { url, serviceRoleKey }
 }
 
 async function requireAuthenticatedUserId() {
@@ -170,3 +183,24 @@ export async function deleteForm(formId: string): Promise<void> {
   }
 }
 
+export async function getPublishedFormById(formId: string): Promise<FormRecord | null> {
+  const { url, serviceRoleKey } = getSupabaseServiceEnv()
+  const supabase = createSupabaseClient(url, serviceRoleKey)
+
+  const { data, error } = await supabase
+    .from(FORMS_TABLE)
+    .select("id, owner_id, title, description, status, schema, created_at, updated_at")
+    .eq("id", formId)
+    .eq("status", "published")
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(`No se pudo obtener el formulario publicado: ${error.message}`)
+  }
+
+  if (!data) {
+    return null
+  }
+
+  return mapRowToForm(data as FormRow)
+}
