@@ -30,12 +30,16 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { formThemeOptions, type FormThemeId } from "@/lib/forms/themes"
+import { cn } from "@/lib/utils"
 
 export function NewFormBuilder({
   formTitle,
   formDescription,
   onFormTitleChange,
   onFormDescriptionChange,
+  formTheme,
+  onFormThemeChange,
   onFieldsChange,
   initialFields = [],
 }: {
@@ -43,6 +47,8 @@ export function NewFormBuilder({
   formDescription: string
   onFormTitleChange: (value: string) => void
   onFormDescriptionChange: (value: string) => void
+  formTheme: FormThemeId
+  onFormThemeChange: (theme: FormThemeId) => void
   onFieldsChange?: (fields: FormField[]) => void
   initialFields?: FormField[]
 }) {
@@ -204,6 +210,30 @@ export function NewFormBuilder({
         {fieldTypes.map((fieldType) => (
           <DraggablePaletteItem key={fieldType.id} fieldType={fieldType} onClick={addField} />
         ))}
+      </div>
+      <Separator className="mt-4 mb-4" />
+      <div className="flex flex-col space-y-2">
+        <h2 className="text-base font-semibold text-zinc-900">Temas predefinidos</h2>
+        <p className="text-sm text-zinc-500">Como se vera el formulario para tus usuarios</p>
+        <div className="mt-3 space-y-2">
+          {formThemeOptions.map((theme) => (
+            <Button
+              key={theme.id}
+              type="button"
+              variant="outline"
+              className={cn(
+                "h-auto w-full justify-start bg-white px-3 py-2 text-left",
+                formTheme === theme.id ? "border-primary ring-1 ring-primary/30" : "border-zinc-200"
+              )}
+              onClick={() => onFormThemeChange(theme.id)}
+            >
+              <span className="block">
+                <span className="block text-sm font-semibold text-zinc-900">{theme.label}</span>
+                <span className="block text-xs text-zinc-500">{theme.description}</span>
+              </span>
+            </Button>
+          ))}
+        </div>
       </div>
     </aside>
   )

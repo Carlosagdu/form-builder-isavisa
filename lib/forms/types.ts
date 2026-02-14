@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { formThemeValues, type FormThemeId } from "@/lib/forms/themes"
 
 export const formFieldTypeIds = [
   "short-text",
@@ -26,6 +27,7 @@ export type FormFieldSchema = {
 export type FormSchema = {
   version: number
   fields: FormFieldSchema[]
+  theme: FormThemeId
 }
 
 export type FormRecord = {
@@ -87,6 +89,7 @@ const formFieldSchema = z.object({
 export const formSchemaValidator = z.object({
   version: z.number().int().positive(),
   fields: z.array(formFieldSchema),
+  theme: z.enum(formThemeValues).default("classic"),
 })
 
 export const formAnswersValidator = z.record(z.string(), z.unknown())
@@ -94,6 +97,7 @@ export const formAnswersValidator = z.record(z.string(), z.unknown())
 export const defaultFormSchema: FormSchema = {
   version: 1,
   fields: [],
+  theme: "classic",
 }
 
 export function parseFormSchema(value: unknown): FormSchema {

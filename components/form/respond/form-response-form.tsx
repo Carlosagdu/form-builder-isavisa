@@ -24,6 +24,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import type { FormFieldSchema } from "@/lib/forms/types"
 import { validateAnswersWithZod } from "@/lib/forms/response-validation"
+import { getFormThemeStyles, type FormThemeId } from "@/lib/forms/themes"
 import { cn } from "@/lib/utils"
 import { CircleCheckBig } from "lucide-react"
 
@@ -52,12 +53,15 @@ export function FormResponseForm({
   title,
   description,
   fields,
+  theme = "classic",
 }: {
   formId: string
   title: string
   description: string
   fields: FormFieldSchema[]
+  theme?: FormThemeId
 }) {
+  const styles = getFormThemeStyles(theme)
   const [answers, setAnswers] = useState<AnswersState>({})
   const [fieldErrors, setFieldErrors] = useState<FieldErrorsState>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -118,13 +122,13 @@ export function FormResponseForm({
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4">
-      <section className="rounded-2xl border bg-white p-6">
-        <h1 className="text-2xl font-semibold text-zinc-900">{title.trim() || "Formulario sin titulo"}</h1>
-        <p className="mt-2 text-sm text-zinc-600">{description.trim() || "Sin descripcion"}</p>
+      <section className={cn("rounded-2xl p-6", styles.card)}>
+        <h1 className={cn("text-2xl font-semibold", styles.title)}>{title.trim() || "Formulario sin titulo"}</h1>
+        <p className={cn("mt-2 text-sm", styles.description)}>{description.trim() || "Sin descripcion"}</p>
       </section>
 
       {isSubmitted ? (
-        <Alert className="rounded-2xl border bg-white p-4">
+        <Alert className={cn("rounded-2xl p-4", styles.card)}>
           <CircleCheckBig className="text-emerald-600" />
           <AlertTitle>Gracias por responder</AlertTitle>
           <AlertDescription>
@@ -132,7 +136,7 @@ export function FormResponseForm({
           </AlertDescription>
         </Alert>
       ) : (
-      <form className="space-y-6 rounded-2xl border bg-white p-6" onSubmit={handleSubmit}>
+      <form className={cn("space-y-6 rounded-2xl p-6", styles.card)} onSubmit={handleSubmit}>
         {hasFields ? (
           fields.map((field) => {
             switch (field.type) {

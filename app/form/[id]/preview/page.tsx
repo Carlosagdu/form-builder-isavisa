@@ -6,6 +6,7 @@ import { notFound, redirect } from "next/navigation"
 import { FormRenderer } from "@/components/form/renderer/form-renderer"
 import { FormRendererSkeleton } from "@/components/form/renderer/form-renderer-skeleton"
 import { Button } from "@/components/ui/button"
+import { getFormThemeStyles } from "@/lib/forms/themes"
 import { getFormById } from "@/lib/forms/repository"
 
 export default async function FormPreviewPage({
@@ -68,8 +69,10 @@ async function FormPreviewContent({
     notFound()
   }
 
+  const styles = getFormThemeStyles(form.schema.theme)
+
   return (
-    <div className="h-screen overflow-y-auto bg-zinc-50 p-4 md:p-6">
+    <div className={`h-screen overflow-y-auto p-4 md:p-6 ${styles.pageBg}`}>
       <div className="mx-auto mb-4 flex w-full max-w-3xl items-center justify-between">
         <div className="flex items-center gap-2">
           {!shouldShowOnlyEdit && (
@@ -93,6 +96,7 @@ async function FormPreviewContent({
         title={form.title}
         description={form.description}
         fields={form.schema.fields}
+        theme={form.schema.theme}
       />
     </div>
   )

@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { useEffect } from "react"
 import type { FormStatus } from "@/lib/forms/types"
+import type { FormThemeId } from "@/lib/forms/themes"
 
 export function NewFormHeader() {
   const router = useRouter()
@@ -23,6 +24,7 @@ export function NewFormHeader() {
   const searchParams = useSearchParams()
   const [formTitle, setFormTitle] = useState("Formulario Nuevo")
   const [formDescription, setFormDescription] = useState("")
+  const [formTheme, setFormTheme] = useState<FormThemeId>("classic")
   const [fields, setFields] = useState<FormField[]>([])
   const [isPublishing, setIsPublishing] = useState(false)
   const [isOpeningPreview, setIsOpeningPreview] = useState(false)
@@ -39,6 +41,7 @@ export function NewFormHeader() {
   const schemaPayload = {
     version: 1 as const,
     fields,
+    theme: formTheme,
   }
 
   useEffect(() => {
@@ -70,6 +73,7 @@ export function NewFormHeader() {
         setFormTitle(result.data.title)
         setFormDescription(result.data.description)
         setFields(result.data.schema.fields as FormField[])
+        setFormTheme(result.data.schema.theme)
         setBuilderResetToken((current) => current + 1)
       } finally {
         if (!cancelled) {
@@ -222,6 +226,8 @@ export function NewFormHeader() {
             onFormDescriptionChange={setFormDescription}
             onFieldsChange={setFields}
             initialFields={fields}
+            formTheme={formTheme}
+            onFormThemeChange={setFormTheme}
           />
         )}
       </main>
