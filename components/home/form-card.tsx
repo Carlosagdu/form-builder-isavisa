@@ -1,9 +1,23 @@
 "use client"
 
-import { CalendarDays, Copy, Eye, PencilLine, SlidersHorizontal, Users } from "lucide-react"
+import { CalendarDays, Copy, Eye, PencilLine, Trash2, Users } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { toast } from "sonner"
 
+import { deleteFormAction } from "@/actions"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -12,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Spinner } from "@/components/ui/spinner"
 import type { FormCardData } from "@/lib/mocks/forms"
 import { cn } from "@/lib/utils"
 
@@ -32,6 +47,9 @@ const STATUS_LABEL: Record<FormCardData["status"], string> = {
 }
 
 export function FormCard({ form }: FormCardProps) {
+  const router = useRouter()
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const handleCopyLink = async () => {
     if (form.status !== "published") {
       toast.error("Solo puedes copiar enlaces de formularios publicados.", {
@@ -46,6 +64,22 @@ export function FormCard({ form }: FormCardProps) {
     } catch {
       toast.error("No se pudo copiar el enlace.", { position: "top-center" })
     }
+  }
+
+  const handleDelete = async () => {
+    if (isDeleting) return
+    setIsDeleting(true)
+
+    const result = await deleteFormAction(form.id)
+    if (!result.ok) {
+      toast.error(result.error, { position: "top-center" })
+      setIsDeleting(false)
+      return
+    }
+
+    toast.success("Formulario eliminado correctamente.", { position: "top-center" })
+    router.refresh()
+    setIsDeleting(false)
   }
 
   return (
@@ -78,12 +112,44 @@ export function FormCard({ form }: FormCardProps) {
       </CardContent>
 
       <CardFooter className="justify-between border-t px-6 py-4">
-        <p className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-          <Users className="h-5 w-5 text-orange-500" />
-          {form.submissionsCount} Responses
-        </p>
+        <Button variant={"ghost"} aria-label={`Ver respuestas de ${form.title}`}>
+          <Link href={`/form/${form.id}/responses`}>
+            <p className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+              <Users className="h-5 w-5 text-orange-500" />
+              {form.submissionsCount} Responses
+            </p>
+          </Link>
+        </Button>
 
         <div className="flex items-center gap-1">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="ghost"
+                aria-label={`Eliminar ${form.title}`}
+                className="text-rose-600 hover:text-rose-700"
+                disabled={isDeleting}
+              >
+                {isDeleting ? <Spinner className="size-4" /> : <Trash2 className="size-4" />}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Eliminar formulario?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción no se puede deshacer. Se eliminará el formulario y sus respuestas.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button
             type="button"
             size="icon-sm"
@@ -93,16 +159,6 @@ export function FormCard({ form }: FormCardProps) {
             onClick={handleCopyLink}
           >
             <Copy className="h-4 w-4" />
-          </Button>
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            asChild
-            aria-label={`Ver respuestas de ${form.title}`}
-          >
-            <Link href={`/form/${form.id}/responses`}>
-              <SlidersHorizontal className="h-4 w-4" />
-            </Link>
           </Button>
           <Button
             size="icon-sm"

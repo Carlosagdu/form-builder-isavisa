@@ -3,9 +3,11 @@ import { ArrowLeft, FileText } from "lucide-react"
 import { notFound, redirect } from "next/navigation"
 
 import { ResponsesDataTable } from "@/components/form/responses/responses-data-table"
+import { SelectionDistributionCharts } from "@/components/form/responses/selection-distribution-charts"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { buildSelectionDistributions } from "@/lib/forms/response-analytics"
 import { listFormResponsesByFormId } from "@/lib/forms/response-repository"
 import { getFormById } from "@/lib/forms/repository"
 
@@ -32,6 +34,7 @@ export default async function FormResponsesPage({
   }
 
   const responses = await listFormResponsesByFormId(form.id, 100)
+  const selectionDistributions = buildSelectionDistributions(form.schema.fields, responses)
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
@@ -47,6 +50,10 @@ export default async function FormResponsesPage({
         </div>
         <Badge variant="outline">{responses.length} respuestas</Badge>
       </div>
+
+      {responses.length > 0 ? (
+        <SelectionDistributionCharts distributions={selectionDistributions} />
+      ) : null}
 
       <Card className="flex min-h-0 flex-1 flex-col">
         <CardHeader>
