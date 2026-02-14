@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import { SlidersHorizontal } from "lucide-react"
 import {
   closestCenter,
   DndContext,
@@ -27,6 +28,8 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export function NewFormBuilder({
   formTitle,
@@ -188,6 +191,84 @@ export function NewFormBuilder({
     onFieldsChange?.(fields)
   }, [fields, onFieldsChange])
 
+  const palettePanel = (
+    <aside className="min-h-0 overflow-y-auto rounded-2xl border bg-zinc-50 p-4">
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-zinc-900">Tipos de campos</h2>
+        <p className="text-sm text-zinc-500">Arrastra o haz click para agregar</p>
+        <Separator className="mt-3 mb-6" />
+      </div>
+
+      <div className="flex flex-col space-y-2">
+        <h2 className="mb-1 text-sm font-semibold text-zinc-900 md:mb-3">Campos Basicos</h2>
+        {fieldTypes.map((fieldType) => (
+          <DraggablePaletteItem key={fieldType.id} fieldType={fieldType} onClick={addField} />
+        ))}
+      </div>
+    </aside>
+  )
+
+  const canvasPanel = (
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-zinc-50 p-4">
+      <div className="rounded-xl border border-b-3 border-b-primary bg-white px-4 py-10 text-center">
+        {editingFormField === "title" ? (
+          <Input
+            autoFocus
+            value={formTitle}
+            onChange={(event) => onFormTitleChange(event.target.value)}
+            onBlur={finishEditingFormField}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                finishEditingFormField()
+              }
+            }}
+            className="mx-auto h-11 max-w-xl text-center text-2xl font-semibold"
+          />
+        ) : (
+          <Button
+            variant={"ghost"}
+            size={"lg"}
+            className="mx-auto block text-2xl font-semibold text-zinc-900 hover:text-primary"
+            onClick={() => setEditingFormField("title")}
+          >
+            {formTitle}
+          </Button>
+        )}
+
+        {editingFormField === "description" ? (
+          <Input
+            autoFocus
+            placeholder="Por favor ingresa una corta descripcion del formulario"
+            value={formDescription}
+            onChange={(event) => onFormDescriptionChange(event.target.value)}
+            onBlur={finishEditingFormField}
+            className="mx-auto max-w-xl text-center text-sm text-zinc-600"
+          />
+        ) : (
+          <Button
+            type="button"
+            variant={"ghost"}
+            className="mx-auto mt-2 block text-sm text-zinc-500 hover:text-primary"
+            onClick={() => setEditingFormField("description")}
+          >
+            {formDescription.length == 0 ? "Por favor ingresa una corta descripcion del formulario" : formDescription}
+          </Button>
+        )}
+      </div>
+
+      <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
+        <CanvasDropZone
+          fields={fields}
+          insertBeforeFieldId={overId}
+          showInsertAtEnd={Boolean(activeDragSource) && overId === canvasId}
+          selectedFieldId={selectedFieldId}
+          onSelectField={setSelectedFieldId}
+          onDeleteField={deleteField}
+        />
+      </div>
+    </section>
+  )
+
   return (
     <DndContext
       id="new-form-dnd-context"
@@ -198,82 +279,45 @@ export function NewFormBuilder({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[240px_minmax(0,1fr)_320px]">
-        <aside className="min-h-0 overflow-y-auto rounded-2xl border bg-zinc-50 p-4">
-          <div className="mb-4">
-            <h2 className="text-base font-semibold text-zinc-900">Tipos de campos</h2>
-            <p className="text-sm text-zinc-500">Arrastra o haz click para agregar</p>
-            <Separator className="mt-3 mb-6" />
-          </div>
-
-          <div className="flex flex-col space-y-2">
-            <h2 className="text-sm font-semibold text-zinc-900 mb-1 md:mb-3">Campos Basicos</h2>
-            {fieldTypes.map((fieldType) => (
-              <DraggablePaletteItem key={fieldType.id} fieldType={fieldType} onClick={addField} />
-            ))}
-          </div>
-        </aside>
-
-        <section className="flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-zinc-50 p-4">
-          <div className="rounded-xl border border-b-3 border-b-primary bg-white px-4 py-10 text-center">
-            {editingFormField === "title" ? (
-              <Input
-                autoFocus
-                value={formTitle}
-                onChange={(event) => onFormTitleChange(event.target.value)}
-                onBlur={finishEditingFormField}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    finishEditingFormField()
-                  }
-                }}
-                className="mx-auto h-11 max-w-xl text-center text-2xl font-semibold"
-              />
-            ) : (
-              <Button
-                variant={"ghost"}
-                size={"lg"}
-                className="mx-auto block text-2xl font-semibold text-zinc-900 hover:text-primary"
-                onClick={() => setEditingFormField("title")}
-              >
-                {formTitle}
-              </Button>
-            )}
-
-            {editingFormField === "description" ? (
-              <Input
-                autoFocus
-                placeholder="Por favor ingresa una corta descripcion del formulario"
-                value={formDescription}
-                onChange={(event) => onFormDescriptionChange(event.target.value)}
-                onBlur={finishEditingFormField}
-                className="mx-auto max-w-xl text-center text-sm text-zinc-600"
-              />
-            ) : (
-              <Button
-                type="button"
-                variant={"ghost"}
-                className="mx-auto mt-2 block text-sm text-zinc-500 hover:text-primary"
-                onClick={() => setEditingFormField("description")}
-              >
-                {formDescription.length == 0 ? "Por favor ingresa una corta descripcion del formulario" : formDescription}
-              </Button>
-            )}
-          </div>
-
-          <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
-            <CanvasDropZone
-              fields={fields}
-              insertBeforeFieldId={overId}
-              showInsertAtEnd={Boolean(activeDragSource) && overId === canvasId}
-              selectedFieldId={selectedFieldId}
-              onSelectField={setSelectedFieldId}
-              onDeleteField={deleteField}
-            />
-          </div>
-        </section>
-
+      <div className="hidden h-full min-h-0 gap-3 lg:grid lg:grid-cols-[240px_minmax(0,1fr)_320px]">
+        {palettePanel}
+        {canvasPanel}
         <FieldPropertiesPanel selectedField={selectedField} onUpdateField={updateField} />
+      </div>
+
+      <div className="flex h-full min-h-0 flex-col gap-3 lg:hidden">
+        <Tabs defaultValue="canvas" className="min-h-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="fields">Campos</TabsTrigger>
+              <TabsTrigger value="canvas">Canvas</TabsTrigger>
+            </TabsList>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button type="button" variant="outline" size="sm" disabled={!selectedField}>
+                  <SlidersHorizontal className="size-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[85vh] p-0">
+                <SheetHeader className="border-b">
+                  <SheetTitle>Propiedades</SheetTitle>
+                  <SheetDescription>Edita el campo seleccionado</SheetDescription>
+                </SheetHeader>
+                <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                  <FieldPropertiesPanel selectedField={selectedField} onUpdateField={updateField} />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          <TabsContent value="fields" className="mt-2 min-h-0 flex-1">
+            {palettePanel}
+          </TabsContent>
+
+          <TabsContent value="canvas" className="mt-2 min-h-0 flex-1">
+            {canvasPanel}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <DragOverlay>
