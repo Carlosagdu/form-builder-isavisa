@@ -13,6 +13,10 @@ function getSupabaseEnv() {
 }
 
 function isAuthRoute(pathname: string) {
+  if (pathname === "/auth/logout") {
+    return false
+  }
+
   return pathname === "/auth" || pathname.startsWith("/auth/")
 }
 
