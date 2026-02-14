@@ -12,6 +12,19 @@ function getSupabaseEnv() {
   return { url, key }
 }
 
+function isAuthRoute(pathname: string) {
+  return pathname === "/auth" || pathname.startsWith("/auth/")
+}
+
+function isProtectedRoute(pathname: string) {
+  const isProtectedHome = pathname === "/"
+  const isNewFormBuilder = pathname === "/form/new" || pathname.startsWith("/form/new/")
+  const isFormPreview = /^\/form\/[^/]+\/preview$/.test(pathname)
+  const isFormResponses = /^\/form\/[^/]+\/responses$/.test(pathname)
+
+  return isProtectedHome || isNewFormBuilder || isFormPreview || isFormResponses
+}
+
 export async function updateSession(request: NextRequest) {
   const { url, key } = getSupabaseEnv()
 
@@ -38,10 +51,17 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isProtectedHome = request.nextUrl.pathname === "/"
-  if (isProtectedHome && !user) {
-    const redirectUrl = new URL("/auth?reason=unauthorized", request.url)
+  const pathname = request.nextUrl.pathname
+
+  if (!user && isProtectedRoute(pathname)) {
+    const redirectUrl = new URL("/auth", request.url)
+    redirectUrl.searchParams.set("reason", "unauthorized")
+    redirectUrl.searchParams.set("next", pathname)
     return NextResponse.redirect(redirectUrl)
+  }
+
+  if (user && isAuthRoute(pathname)) {
+    return NextResponse.redirect(new URL("/", request.url))
   }
 
   return response
