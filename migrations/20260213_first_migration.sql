@@ -40,6 +40,13 @@ for select
 to authenticated
 using (owner_id = auth.uid());
 
+drop policy if exists "forms_select_published_public" on public.forms;
+create policy "forms_select_published_public"
+on public.forms
+for select
+to anon, authenticated
+using (status = 'published');
+
 drop policy if exists "forms_insert_own" on public.forms;
 create policy "forms_insert_own"
 on public.forms

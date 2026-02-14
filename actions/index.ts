@@ -147,7 +147,7 @@ export async function deleteFormAction(formId: string): Promise<FormActionResult
 
 export async function submitFormResponseAction(
   input: z.infer<typeof submitFormResponseInputSchema>
-): Promise<FormActionResult<Awaited<ReturnType<typeof createFormResponse>>>> {
+): Promise<{ ok: true } | ActionFailure> {
   const parsed = submitFormResponseInputSchema.safeParse(input)
   if (!parsed.success) {
     return { ok: false, error: "Datos invalidos para enviar respuesta" }
@@ -159,7 +159,7 @@ export async function submitFormResponseAction(
       return { ok: false, error: "El formulario no existe o no esta publicado" }
     }
 
-    const response = await createFormResponse({
+    await createFormResponse({
       formId: parsed.data.formId,
       answers: parsed.data.answers,
       ip: parsed.data.ip,
@@ -167,7 +167,7 @@ export async function submitFormResponseAction(
     })
 
     revalidatePath(`/form/${parsed.data.formId}`)
-    return { ok: true, data: response }
+    return { ok: true }
   } catch (error) {
     return { ok: false, error: actionErrorMessage(error) }
   }

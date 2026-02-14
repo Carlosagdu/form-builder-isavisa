@@ -33,7 +33,7 @@ function mapRowToFormResponse(row: FormResponseRow): FormResponseRecord {
   }
 }
 
-export async function createFormResponse(input: CreateFormResponseInput): Promise<FormResponseRecord> {
+export async function createFormResponse(input: CreateFormResponseInput): Promise<void> {
   const supabase = await createClient()
   const parsedAnswers = formAnswersValidator.safeParse(input.answers)
 
@@ -41,7 +41,7 @@ export async function createFormResponse(input: CreateFormResponseInput): Promis
     throw new Error("Respuestas invalidas para guardar")
   }
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from(FORM_RESPONSES_TABLE)
     .insert({
       form_id: input.formId,
@@ -49,14 +49,10 @@ export async function createFormResponse(input: CreateFormResponseInput): Promis
       ip: input.ip ?? null,
       user_agent: input.userAgent ?? null,
     })
-    .select("id, form_id, answers, submitted_at, created_at, ip, user_agent")
-    .single()
 
   if (error) {
     throw new Error(`No se pudo guardar la respuesta: ${error.message}`)
   }
-
-  return mapRowToFormResponse(data as FormResponseRow)
 }
 
 export async function listFormResponsesByFormId(formId: string, limit = 50): Promise<FormResponseRecord[]> {
@@ -76,3 +72,17 @@ export async function listFormResponsesByFormId(formId: string, limit = 50): Pro
   return (data ?? []).map((row) => mapRowToFormResponse(row as FormResponseRow))
 }
 
+export async function countFormResponsesByFormId(formId: string): Promise<number> {
+  const supabase = await createClient()
+
+  const { count, error } = await supabase
+    .from(FORM_RESPONSES_TABLE)
+    .select("*", { count: "exact", head: true })
+    .eq("form_id", formId)
+
+  if (error) {
+    throw new Error(`No se pudo contar respuestas: ${error.message}`)
+  }
+
+  return count ?? 0
+}

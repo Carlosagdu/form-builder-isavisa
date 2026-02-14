@@ -1,6 +1,6 @@
 "use client"
 
-import { CalendarDays, Copy, Eye, PencilLine, Users } from "lucide-react"
+import { CalendarDays, Copy, Eye, PencilLine, SlidersHorizontal, Users } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -93,6 +93,16 @@ export function FormCard({ form }: FormCardProps) {
             onClick={handleCopyLink}
           >
             <Copy className="h-4 w-4" />
+          </Button>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            asChild
+            aria-label={`Ver respuestas de ${form.title}`}
+          >
+            <Link href={`/form/${form.id}/responses`}>
+              <SlidersHorizontal className="h-4 w-4" />
+            </Link>
           </Button>
           <Button
             size="icon-sm"
