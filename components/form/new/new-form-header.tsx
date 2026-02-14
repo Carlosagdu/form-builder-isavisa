@@ -64,7 +64,6 @@ export function NewFormHeader() {
           toast.error("No encontramos este borrador.", { position: "top-center" })
           return
         }
-        console.log(result.data.description)
 
         setCurrentDraftId(result.data.id)
         setHydratedDraftId(result.data.id)

@@ -36,7 +36,6 @@ export function SelectionDistributionCharts({
   if (distributions.length === 0) {
     return null
   }
-  console.log(distributions)
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
