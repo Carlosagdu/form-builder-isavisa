@@ -1,6 +1,6 @@
 "use client"
 
-import { CalendarDays, Copy, Eye, PencilLine, Trash2, Users } from "lucide-react"
+import { CalendarDays, Copy, PencilLine, Trash2, Users } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -159,16 +159,6 @@ export function FormCard({ form }: FormCardProps) {
             onClick={handleCopyLink}
           >
             <Copy className="h-4 w-4" />
-          </Button>
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            asChild
-            aria-label={`Preview ${form.title}`}
-          >
-            <Link href={`/form/${form.id}/preview`}>
-              <Eye className="h-4 w-4" />
-            </Link>
           </Button>
           <Button
             size="icon-sm"

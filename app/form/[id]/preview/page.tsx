@@ -8,21 +8,27 @@ import { FormRendererSkeleton } from "@/components/form/renderer/form-renderer-s
 import { Button } from "@/components/ui/button"
 import { getFormById } from "@/lib/forms/repository"
 
-export default function FormPreviewPage({
+export default async function FormPreviewPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ from?: string }>
 }) {
+  const shouldShowOnlyEdit = (await searchParams).from === "builder"
+
   return (
     <Suspense
       fallback={
         <div className="h-screen overflow-y-auto bg-zinc-50 p-4 md:p-6">
           <div className="mx-auto mb-4 flex w-full max-w-3xl items-center justify-between">
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled>
-                <ArrowLeft className="size-4" />
-                Volver al dashboard
-              </Button>
+              {!shouldShowOnlyEdit && (
+                <Button variant="outline" size="sm" disabled>
+                  <ArrowLeft className="size-4" />
+                  Volver al dashboard
+                </Button>
+              )}
               <Button size="sm" disabled>
                 <PencilLine className="size-4" />
                 Volver a editar
@@ -33,15 +39,17 @@ export default function FormPreviewPage({
         </div>
       }
     >
-      <FormPreviewContent params={params} />
+      <FormPreviewContent params={params} shouldShowOnlyEdit={shouldShowOnlyEdit} />
     </Suspense>
   )
 }
 
 async function FormPreviewContent({
   params,
+  shouldShowOnlyEdit,
 }: {
   params: Promise<{ id: string }>
+  shouldShowOnlyEdit: boolean
 }) {
   const { id } = await params
 
@@ -64,12 +72,14 @@ async function FormPreviewContent({
     <div className="h-screen overflow-y-auto bg-zinc-50 p-4 md:p-6">
       <div className="mx-auto mb-4 flex w-full max-w-3xl items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href="/">
-              <ArrowLeft className="size-4" />
-              Volver al dashboard
-            </Link>
-          </Button>
+          {!shouldShowOnlyEdit && (
+            <Button asChild variant="outline" size="sm">
+              <Link href="/">
+                <ArrowLeft className="size-4" />
+                Volver al dashboard
+              </Link>
+            </Button>
+          )}
           <Button asChild size="sm">
             <Link href={`/form/new?draftId=${id}`}>
               <PencilLine className="size-4" />

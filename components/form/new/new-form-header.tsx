@@ -155,7 +155,7 @@ export function NewFormHeader() {
       return
     }
 
-    router.push(`/form/${result.data.id}/preview`)
+    router.push(`/form/${result.data.id}/preview?from=builder`)
     setIsOpeningPreview(false)
   }
 
