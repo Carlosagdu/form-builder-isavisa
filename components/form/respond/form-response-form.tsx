@@ -23,10 +23,12 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import type { FormFieldSchema } from "@/lib/forms/types"
+import { validateAnswersWithZod } from "@/lib/forms/response-validation"
 import { cn } from "@/lib/utils"
 import { CircleCheckBig } from "lucide-react"
 
 type AnswersState = Record<string, unknown>
+type FieldErrorsState = Record<string, string>
 
 function requiredMarker(required: boolean) {
   return required ? " *" : ""
@@ -57,6 +59,7 @@ export function FormResponseForm({
   fields: FormFieldSchema[]
 }) {
   const [answers, setAnswers] = useState<AnswersState>({})
+  const [fieldErrors, setFieldErrors] = useState<FieldErrorsState>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
@@ -66,6 +69,12 @@ export function FormResponseForm({
 
   const setAnswer = (fieldId: string, value: unknown) => {
     setAnswers((current) => ({ ...current, [fieldId]: value }))
+    setFieldErrors((current) => {
+      if (!current[fieldId]) return current
+      const next = { ...current }
+      delete next[fieldId]
+      return next
+    })
   }
 
   const toggleMultiSelectOption = (fieldId: string, option: string, checked: boolean) => {
@@ -77,6 +86,15 @@ export function FormResponseForm({
   const handleSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!canSubmit) return
+
+    const validationErrors = validateAnswersWithZod(fields, answers)
+    setFieldErrors(validationErrors)
+    if (Object.keys(validationErrors).length > 0) {
+      toast.error("Revisa los campos marcados e intenta nuevamente.", {
+        position: "top-center",
+      })
+      return
+    }
 
     setIsSubmitting(true)
     const result = await submitFormResponseAction({
@@ -93,6 +111,7 @@ export function FormResponseForm({
 
     toast.success("Respuesta enviada correctamente", { position: "top-center" })
     setAnswers({})
+    setFieldErrors({})
     setIsSubmitted(true)
     setIsSubmitting(false)
   }
@@ -127,6 +146,9 @@ export function FormResponseForm({
                       onChange={(event) => setAnswer(field.id, event.target.value)}
                       placeholder={field.placeholder || "Escribe aqui"}
                     />
+                    {fieldErrors[field.id] ? (
+                      <p className="text-sm text-destructive">{fieldErrors[field.id]}</p>
+                    ) : null}
                   </div>
                 )
               case "long-text":
@@ -140,6 +162,9 @@ export function FormResponseForm({
                       placeholder={field.placeholder || "Escribe aqui"}
                       className="min-h-24"
                     />
+                    {fieldErrors[field.id] ? (
+                      <p className="text-sm text-destructive">{fieldErrors[field.id]}</p>
+                    ) : null}
                   </div>
                 )
               case "single-select":
@@ -161,6 +186,9 @@ export function FormResponseForm({
                         ))}
                       </SelectContent>
                     </Select>
+                    {fieldErrors[field.id] ? (
+                      <p className="text-sm text-destructive">{fieldErrors[field.id]}</p>
+                    ) : null}
                   </div>
                 )
               case "multi-select":
@@ -183,6 +211,9 @@ export function FormResponseForm({
                         </div>
                       )
                     })}
+                    {fieldErrors[field.id] ? (
+                      <p className="text-sm text-destructive">{fieldErrors[field.id]}</p>
+                    ) : null}
                   </div>
                 )
               case "number":
@@ -196,6 +227,9 @@ export function FormResponseForm({
                       onChange={(event) => setAnswer(field.id, event.target.value)}
                       placeholder={field.placeholder || "Ej. 10"}
                     />
+                    {fieldErrors[field.id] ? (
+                      <p className="text-sm text-destructive">{fieldErrors[field.id]}</p>
+                    ) : null}
                   </div>
                 )
               case "date":
@@ -231,6 +265,9 @@ export function FormResponseForm({
                           />
                         </PopoverContent>
                       </Popover>
+                      {fieldErrors[field.id] ? (
+                        <p className="text-sm text-destructive">{fieldErrors[field.id]}</p>
+                      ) : null}
                     </div>
                   )
                 }
