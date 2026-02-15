@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { SlidersHorizontal } from "lucide-react"
 import {
+  type CollisionDetection,
   closestCenter,
   DndContext,
   DragEndEvent,
   DragOverlay,
-  DragOverEvent,
   DragStartEvent,
   PointerSensor,
   useSensor,
@@ -56,9 +56,7 @@ export function NewFormBuilder({
   const [fields, setFields] = useState<FormField[]>(initialFields)
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
   const [activeFieldTypeId, setActiveFieldTypeId] = useState<FieldTypeId | null>(null)
-  const [activeDragSource, setActiveDragSource] = useState<"palette" | "canvas" | null>(null)
-  const [overId, setOverId] = useState<string | null>(null)
-  const suppressNextPaletteClickRef = useRef(false)
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -110,92 +108,100 @@ export function NewFormBuilder({
     setSelectedFieldId((current) => (current === fieldId ? null : current))
   }
 
+  const moveField = (fieldId: string, direction: "up" | "down") => {
+    setFields((current) => {
+      const currentIndex = current.findIndex((field) => field.id === fieldId)
+      if (currentIndex < 0) return current
+
+      const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1
+      if (targetIndex < 0 || targetIndex >= current.length) return current
+
+      return arrayMove(current, currentIndex, targetIndex)
+    })
+  }
+
   const finishEditingFormField = () => {
     setEditingFormField(null)
   }
 
   const handleDragStart = (event: DragStartEvent) => {
-    const fieldTypeId = event.active.data.current?.fieldTypeId as FieldTypeId | undefined
     const source = event.active.data.current?.source as "palette" | "canvas" | undefined
-
-    if (source) {
-      setActiveDragSource(source)
-      if (source === "palette") {
-        suppressNextPaletteClickRef.current = true
-      }
-    }
-    if (fieldTypeId) {
-      setActiveFieldTypeId(fieldTypeId)
-    }
-  }
-
-  const handleDragOver = (event: DragOverEvent) => {
-    setOverId(event.over?.id ? String(event.over.id) : null)
-  }
-
-  const resetDragState = () => {
-    setActiveFieldTypeId(null)
-    setActiveDragSource(null)
-    setOverId(null)
-  }
-
-  const handleDragCancel = () => {
-    resetDragState()
-    setTimeout(() => {
-      suppressNextPaletteClickRef.current = false
-    }, 0)
-  }
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const currentOverId = event.over?.id
-    const source = event.active.data.current?.source
-    const fieldTypeId = event.active.data.current?.fieldTypeId as FieldTypeId | undefined
-
-    if (!currentOverId) {
-      resetDragState()
+    if (source === "palette") {
+      const fieldTypeId = event.active.data.current?.fieldTypeId as FieldTypeId | undefined
+      setActiveFieldTypeId(fieldTypeId ?? null)
       return
     }
 
-    if (source === "palette" && fieldTypeId) {
-      if (currentOverId === canvasId) {
+    setActiveFieldTypeId(null)
+  }
+
+  const handleDragCancel = () => {
+    setActiveFieldTypeId(null)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const overId = event.over?.id ? String(event.over.id) : null
+    const source = event.active.data.current?.source as "palette" | "canvas" | undefined
+
+    if (source === "palette") {
+      const fieldTypeId = event.active.data.current?.fieldTypeId as FieldTypeId | undefined
+      if (!fieldTypeId || !overId) {
+        setActiveFieldTypeId(null)
+        return
+      }
+
+      if (overId === canvasId) {
         addField(fieldTypeId)
       } else {
-        const targetIndex = fields.findIndex((field) => field.id === currentOverId)
+        const targetIndex = fields.findIndex((field) => field.id === overId)
         if (targetIndex >= 0) {
           addFieldAtIndex(fieldTypeId, targetIndex)
         }
       }
+
+      setActiveFieldTypeId(null)
+      return
     }
 
-    if (source === "canvas") {
-      const activeFieldId = event.active.data.current?.fieldId as string | undefined
-      if (!activeFieldId) {
-        resetDragState()
-        return
-      }
+    if (source === "canvas" && overId && overId !== canvasId) {
+      const activeId = String(event.active.id)
+      if (activeId !== overId) {
+        setFields((current) => {
+          const oldIndex = current.findIndex((field) => field.id === activeId)
+          const newIndex = current.findIndex((field) => field.id === overId)
 
-      if (currentOverId === canvasId || activeFieldId === currentOverId) {
-        resetDragState()
-        return
-      }
+          if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) {
+            return current
+          }
 
-      const oldIndex = fields.findIndex((field) => field.id === activeFieldId)
-      const newIndex = fields.findIndex((field) => field.id === currentOverId)
-
-      if (oldIndex >= 0 && newIndex >= 0 && oldIndex !== newIndex) {
-        setFields((current) => arrayMove(current, oldIndex, newIndex))
+          return arrayMove(current, oldIndex, newIndex)
+        })
       }
     }
 
-    resetDragState()
-    setTimeout(() => {
-      suppressNextPaletteClickRef.current = false
-    }, 0)
+    setActiveFieldTypeId(null)
   }
 
   useEffect(() => {
     onFieldsChange?.(fields)
   }, [fields, onFieldsChange])
+
+  const collisionDetectionStrategy: CollisionDetection = (args) => {
+    const source = args.active.data.current?.source as "palette" | "canvas" | undefined
+
+    if (source === "canvas") {
+      const sortableContainers = args.droppableContainers.filter(
+        (container) => String(container.id) !== canvasId
+      )
+
+      return closestCenter({
+        ...args,
+        droppableContainers: sortableContainers,
+      })
+    }
+
+    return closestCenter(args)
+  }
 
   const palettePanel = (
     <aside className="min-h-0 overflow-y-auto rounded-2xl border bg-zinc-50 p-4">
@@ -256,8 +262,8 @@ export function NewFormBuilder({
           />
         ) : (
           <Button
-            variant={"ghost"}
-            size={"lg"}
+            variant="ghost"
+            size="lg"
             className="mx-auto block text-2xl font-semibold text-zinc-900 hover:text-primary"
             onClick={() => setEditingFormField("title")}
           >
@@ -277,11 +283,11 @@ export function NewFormBuilder({
         ) : (
           <Button
             type="button"
-            variant={"ghost"}
+            variant="ghost"
             className="mx-auto mt-2 block text-sm text-zinc-500 hover:text-primary"
             onClick={() => setEditingFormField("description")}
           >
-            {formDescription.length == 0 ? "Por favor ingresa una corta descripcion del formulario" : formDescription}
+            {formDescription.length === 0 ? "Por favor ingresa una corta descripcion del formulario" : formDescription}
           </Button>
         )}
       </div>
@@ -289,11 +295,11 @@ export function NewFormBuilder({
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
         <CanvasDropZone
           fields={fields}
-          insertBeforeFieldId={overId}
-          showInsertAtEnd={Boolean(activeDragSource) && overId === canvasId}
           selectedFieldId={selectedFieldId}
           onSelectField={setSelectedFieldId}
           onDeleteField={deleteField}
+          onMoveFieldUp={(fieldId) => moveField(fieldId, "up")}
+          onMoveFieldDown={(fieldId) => moveField(fieldId, "down")}
         />
       </div>
     </section>
@@ -303,9 +309,8 @@ export function NewFormBuilder({
     <DndContext
       id="new-form-dnd-context"
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={collisionDetectionStrategy}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
@@ -352,7 +357,7 @@ export function NewFormBuilder({
 
       <DragOverlay>
         {activeFieldType ? (
-          <div className="flex items-center gap-2 rounded-md border-l-primary border-l-3 bg-background px-3 py-2 text-sm font-medium text-zinc-800 shadow-sm">
+          <div className="flex items-center gap-2 rounded-md border-l-3 border-l-primary bg-background px-3 py-2 text-sm font-medium text-zinc-800 shadow-sm">
             <activeFieldType.icon className="size-4" />
             {activeFieldType.label}
           </div>
